@@ -4,6 +4,11 @@ A cinematic, free-to-play 3D survival prototype for phone and desktop browsers.
 
 **Status:** playable vertical slice. Three.js, HTML/CSS/JavaScript. No build system, login, or paid assets required.
 
+## Live deployment
+
+**Play:** https://gothic-island.vercel.app/  
+**Hosting:** Vercel Hobby, linked to the production `main` branch of this repository. Commits to `main` trigger automatic deployments.
+
 ## Play
 
 Serve the repository root with a static HTTP server:
@@ -14,7 +19,7 @@ python -m http.server 8000
 
 Open http://localhost:8000, or publish the main branch as a GitHub Pages site (Settings → Pages → Deploy from a branch → main / root).
 
-An Internet connection is currently required to load the Three.js library and optionally Kenney's CC0 models from jsDelivr. Original geometry is used when optional models fail to load.
+An Internet connection is currently required to load the Three.js library and optionally Kenney's CC0 models from jsDelivr. Original geometry is used when optional models fail to load. Procedural PBR-like surfaces and a cinematic world pass are included in `cinematic.js`.
 
 ## Controls
 
@@ -26,6 +31,10 @@ An Internet connection is currently required to load the Three.js library and op
 | Eat berries | F | BERRY button |
 | Inventory / crafting | I / C | HUD buttons |
 | Zoom | Mouse wheel | + / − controls |
+
+## Graphics and scene
+
+The cinematic pass provides procedurally textured soil, wood, stone, shingles and rust, an evolving sky with moon and stars, grasses via instancing, animated crows, atmospheric motes, water tower, grain silo, windmill, church and farmhouse dressing, and optimized asset caching for Kenney models. More features and polish are planned.
 
 ## Gameplay
 
