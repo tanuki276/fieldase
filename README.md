@@ -77,4 +77,4 @@ Repeated static meshes share geometry and are instanced. Animated characters, co
 
 Three.js is MIT licensed. Kenney Graveyard Kit and Nature Kit are CC0, requested optionally from the Hidencod/tge-assets mirror on jsDelivr. Optional models are not redistributed in this repository. Original procedural world geometry, textures, creatures, effects, audio, interface, and game code are covered by the repository's MIT license.
 
-Recent Chrome, Edge, Safari, or Firefox with WebGL2 is required. Hosting uses Vercel Hobby, with production deployments linked to `main`.
+Recent Chrome, Edge, Safari, or Firefox is recommended. WebGL2 enables the full 3D scene. If the browser cannot create a WebGL context, an isometric Canvas compatibility view runs the same survival rules, controls, collisions, and saves. The title screen identifies this mode. Hosting uses Vercel Hobby, with production deployments linked to `main`.

@@ -236,3 +236,5 @@ summary { cursor: pointer; font: 11px var(--narrow); letter-spacing: 2px; color:
 .reducedMotion #dangerWash { visibility: hidden; }
 
 #mobileRun[data-exhausted="true"] { color: #be8b77; border-color: #be8b7755; }
+
+#compatibilityNote { color: #c8ba8f; border-left: 1px solid #b79d64; padding-left: 12px; font-size: 10px; line-height: 1.8; max-width: 280px; }
