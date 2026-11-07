@@ -17,10 +17,10 @@
     <div class="tiny" id="loadStatus" role="status">THE LAST HARVEST</div>
     <button id="retryLoad" hidden>再読み込み</button>
   </div>
-  <main id="game" aria-label="Gothic Island ゲーム画面">
+  <main id="game" class="titleScreen" aria-label="Gothic Island ゲーム画面">
     <div class="vignette"></div><div class="grain"></div><div id="dangerWash"></div>
     <header class="topbar">
-      <div class="brand"><span class="cross" aria-hidden="true">✝</span><div><strong>GOTHIC ISLAND</strong><small>THE LAST HARVEST</small></div></div>
+      <div class="brand"><span class="cross" aria-hidden="true">✝︎</span><div><strong>GOTHIC ISLAND</strong><small>THE LAST HARVEST</small></div></div>
       <div class="timebox"><span id="weather">THE LAST LIGHT</span><b id="clock">18:42</b><span id="day">DAY 01</span></div>
     </header>
     <aside class="stats" aria-label="生存状態">
@@ -79,7 +79,7 @@
       <button id="lanternButton" title="ランタンを切り替え · L" aria-pressed="false"><kbd>L</kbd><span>LANTERN</span></button>
     </div>
     <nav class="quick" aria-label="ゲームメニュー">
-      <button id="bagButton" title="バッグ · I">▦ <small>BAG</small></button><button id="craftButton" title="クラフト · C">⚒ <small>CRAFT</small></button><button id="mapButton" title="地図 · M">⌖ <small>MAP</small></button><button id="journalButton" title="記録 · J">▤ <small>JOURNAL</small></button><button id="soundButton" title="音声を切り替え" aria-pressed="false">♫ <small>SOUND</small></button><button id="pauseButton" title="一時停止 · Esc" aria-label="一時停止">Ⅱ <small>PAUSE</small></button>
+      <button id="bagButton" title="バッグ · I">▦ <small>BAG</small></button><button id="craftButton" title="クラフト · C">⚒︎ <small>CRAFT</small></button><button id="mapButton" title="地図 · M">⌖ <small>MAP</small></button><button id="journalButton" title="記録 · J">▤ <small>JOURNAL</small></button><button id="soundButton" title="音声を切り替え" aria-pressed="false">♫ <small>SOUND</small></button><button id="pauseButton" title="一時停止 · Esc" aria-label="一時停止">Ⅱ <small>PAUSE</small></button>
     </nav>
     <div id="mobile">
       <div class="stickBase" id="stick" aria-label="移動スティック"><div class="stickKnob" id="knob"></div></div>
@@ -94,7 +94,7 @@
     <div class="introTint"></div>
     <div class="introContent">
       <span class="eyebrow">AN ASHCROFT COUNTY SURVIVAL STORY</span>
-      <h1>GOTHIC<br><em>ISLAND</em></h1><div class="rule"><span>✝</span></div><h3>THE LAST HARVEST</h3>
+      <h1>GOTHIC<br><em>ISLAND</em></h1><div class="rule"><span>✝︎</span></div><h3>THE LAST HARVEST</h3>
       <p>町は消えた。道は途切れた。<br>畑にいる何かは、あなたの足音を聞いている。</p>
       <label class="titleDifficulty" for="titleDifficulty">CHOOSE YOUR NIGHT<select id="titleDifficulty"><option value="story">STORY · 探索を楽しむ</option><option value="survivor" selected>SURVIVOR · 生き延びる</option><option value="nightmare">NIGHTMARE · 極限の夜</option></select></label>
       <p id="compatibilityNote" hidden>この端末では互換表示でプレイできます。<br>探索・追跡・セーブはそのまま利用できます。</p>
