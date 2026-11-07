@@ -178,8 +178,9 @@ export function installCinematic({THREE,scene,renderer,M,cube,cylinder,ball,grou
   // Grounding: semi-transparent local ground shadow, dynamic with player.
   const shadow=add(new THREE.CircleGeometry(1.03,26),new THREE.MeshBasicMaterial({color:0x080e0a,transparent:true,opacity:.4,depthWrite:false}),scene,0,-.035,0);
   shadow.rotation.x=-Math.PI/2;
+  for(const dynamic of [sky,moon,halo,inst,gravel,blades,particles,shadow,...birds.map(bird=>bird.b)])dynamic.userData.dynamic=true;
   const env={
-    tick(time,dt,playerPosition,hour){
+    tick(time,dt,playerPosition,hour,reducedMotion=false){
       const day=Math.max(0,Math.sin((hour-5)/14*Math.PI));
       skyUniforms.uDay.value=day;skyUniforms.uTime.value=time*.0001;
       starMat.opacity=Math.max(0,1-day*2)*.85;
@@ -199,7 +200,7 @@ export function installCinematic({THREE,scene,renderer,M,cube,cylinder,ball,grou
         if(dustPos[k+2]>110)dustPos[k+2]=-110;
       }dustGeo.attributes.position.needsUpdate=true;
       dustMat.opacity=.12+day*.3;
-      porchLamp.intensity=(7+(1-day)*9)*(1+Math.sin(time*.012)*.06);
+      porchLamp.intensity=(7+(1-day)*9)*(1+(reducedMotion?0:Math.sin(time*.012)*.06));
       shadow.position.x=playerPosition.x;shadow.position.z=playerPosition.z;
     }
   };

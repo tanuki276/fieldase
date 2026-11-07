@@ -1,58 +1,80 @@
-# GOTHIC ISLAND — American Gothic survival
+# GOTHIC ISLAND — The Last Harvest
 
-A cinematic, free-to-play 3D survival prototype for phone and desktop browsers.
+A free 3D survival horror game set on an abandoned American farm in 1931. Explore Ashcroft County, avoid the harvesters, collect supplies, repair the stranded pickup, and escape.
 
-**Status:** playable vertical slice. Three.js, HTML/CSS/JavaScript. No build system, login, or paid assets required.
+**Play at https://gothic-island.vercel.app/**
 
-## Live deployment
+## Run locally
 
-**Play:** https://gothic-island.vercel.app/  
-**Hosting:** Vercel Hobby, linked to the production `main` branch of this repository. Commits to `main` trigger automatic deployments.
-
-## Play
-
-Serve the repository root with a static HTTP server:
+Serve the repository root with a static HTTP server, then open http://localhost:8000.
 
 ```sh
-python -m http.server 8000
+python3 -m http.server 8000
 ```
 
-Open http://localhost:8000, or publish the main branch as a GitHub Pages site (Settings → Pages → Deploy from a branch → main / root).
+No install or build step is needed. An internet connection loads Three.js from jsDelivr. Optional Kenney models and Google Fonts enhance the presentation, with procedural geometry and system fonts as fallbacks.
 
-An Internet connection is currently required to load the Three.js library and optionally Kenney's CC0 models from jsDelivr. Original geometry is used when optional models fail to load. Procedural PBR-like surfaces and a cinematic world pass are included in `cinematic.js`.
+## The farm after dark
+
+- Three harvesters patrol the farm, investigate footsteps, pursue visible players, and search the last place they saw you. Buildings block their sight.
+- Crouching reduces visibility and noise. Sprinting buys distance but costs stamina. A dodge provides a short invulnerability window.
+- Red flares repel nearby harvesters for 16 seconds. Herbal dressings recover 40 health. Both can be crafted.
+- Rain masks footsteps. Thick fog limits enemy sight. Storms bring rain and lightning.
+- The roadside camp, farmhouse porch, and pickup are refuges marked on the county map. Rest at the farmhouse to recover health and stamina at the cost of 15 hunger and one in-game hour.
+- A tool shed offers renewable supplies every 90 active seconds. Repair materials remain obtainable after spending resources on survival tools.
+- Five discoverable records tell the story of the county and offer survival clues. The ending records your exploration distance, time, recovered notes, and knockdowns.
+- Story, Survivor, and Nightmare difficulty can be changed before starting or in the pause menu. Graphics, volume, and reduced-motion options are available there too.
 
 ## Controls
 
-| Action | Desktop | Phone |
+| Action | Keyboard / mouse | Touch |
 | --- | --- | --- |
-| Move | WASD / arrows | Left joystick |
-| Sprint | Shift | RUN button |
-| Interact / rest | E | INTERACT button |
-| Eat berries | F | BERRY button |
-| Inventory / crafting | I / C | HUD buttons |
-| Map | M | MAP button |
-| Pause / close menu | Esc | Ⅱ / close button |
+| Move | WASD / arrows | Left stick |
+| Sprint | Hold Shift | Hold RUN |
+| Crouch | Hold Ctrl | Toggle CROUCH |
+| Dodge | Space | DODGE |
+| Interact / rest / read | E | ACT |
+| Eat berries | F | EAT |
+| Deploy flare | Q | FLARE |
+| Heal | R | HEAL |
+| Toggle crafted lantern | L | LANTERN |
+| Inventory | I | BAG |
+| Crafting | C | CRAFT |
+| Map | M | MAP |
+| Journal | J | LOG |
+| Pause / close panel | Esc | Ⅱ / close button |
+| Zoom | Mouse wheel | — |
 
-## Graphics and scene
+Light helps you see but makes you easier to spot. Lose a pursuer behind a building, crouch, or reach a safe light. The HUD points toward the current objective and missing repair materials. Gathering fuel, the key, and a repair kit unlocks escape at the pickup.
 
-The cinematic pass provides procedurally textured soil, wood, stone, shingles and rust, an evolving sky with moon and stars, grasses via instancing, animated crows, atmospheric motes, water tower, grain silo, windmill, church and farmhouse dressing, and optimized asset caching for Kenney models. More features and polish are planned.
+## Saving and accessibility
 
-## Gameplay
+Progress saves locally every ten active seconds, after important actions, when opening a menu, and when leaving or hiding the page. Existing version-two saves are migrated with the new survival equipment defaults. Menus and hidden tabs pause simulation. Knockdowns return you to camp with your supplies intact.
 
-Explore an abandoned Midwestern farm at dusk. Collect wood, stone and scrap; forage berries; craft a hatchet, lantern and repair kit; search the barn for a fuel can and the chapel for a key; repair the stranded pickup truck and escape. Hunger, stamina, fog, lighting and a day/night cycle keep the farm oppressive. The HUD points to the next story objective and nearby missing repair materials. The map marks your position and destination. Rest at the farmhouse to recover health and stamina in exchange for hunger and one in-game hour. Opening the bag, crafting panel, map or pause menu freezes the simulation. Progress saves automatically in your browser and can be resumed from the title screen.
+Sound begins only after choosing SOUND. Reduced-motion mode suppresses lightning flashes and damage flashes, slows rain, and removes lamp flicker. Keyboard focus is visible and remains inside an open panel. Low graphics disables shadows and reduces rendering resolution.
+
+## Validation
+
+The simulation tests use Node.js 20 or later and have no package dependencies.
+
+```sh
+npm test
+```
+
+Tests cover detection, hearing, cover, safe zones, flares, dodging, attack cooldowns, weather, save validation, and respawning.
+
+## Source structure
+
+- `game.js` connects input, scene, UI, crafting, objectives, and saving.
+- `survival.js` owns serializable pursuer AI, weather, combat timers, and survival statistics.
+- `atmosphere.js` renders creatures, instanced rain, lightning, and flare effects.
+- `audio.js` synthesizes wind, footsteps, heartbeat, and gameplay feedback with Web Audio.
+- `cinematic.js` supplies procedural surfaces, the sky, foliage, crows, and farm dressing.
+
+Repeated static meshes share geometry and are instanced. Animated characters, collectible objects, and cinematic effects retain their own scene nodes.
 
 ## Free assets and license
 
-- **Three.js** — MIT, https://threejs.org/
-- **Kenney Graveyard Kit / Nature Kit** — CC0, https://kenney.nl/assets/graveyard-kit. Optional external models loaded from https://github.com/Hidencod/tge-assets (CC0 Kenney model mirror).
-- World geometry, procedural textures, game logic, interface and generated ambience are created for this prototype. The code in this repository is offered under the MIT license (see LICENSE). No paid models or music.
+Three.js is MIT licensed. Kenney Graveyard Kit and Nature Kit are CC0, requested optionally from the Hidencod/tge-assets mirror on jsDelivr. Optional models are not redistributed in this repository. Original procedural world geometry, textures, creatures, effects, audio, interface, and game code are covered by the repository's MIT license.
 
-Kenney assets are requested at runtime, not redistributed in this source tree. The game remains playable without them; the corresponding procedural gravestones remain visible.
-
-## Browser support
-
-Recent Chrome, Edge, Safari and Firefox with WebGL2. For older or lower-end phones, shadows and pixel ratio are automatically reduced. This prototype is a foundation, not yet a content-complete commercial game.
-
-## Roadmap
-
-Interior rooms, enemy AI, larger farm town, physical animations, offline asset bundling, accessibility improvements and automated performance testing.
+Recent Chrome, Edge, Safari, or Firefox with WebGL2 is required. Hosting uses Vercel Hobby, with production deployments linked to `main`.
