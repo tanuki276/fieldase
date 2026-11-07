@@ -30,7 +30,8 @@ An Internet connection is currently required to load the Three.js library and op
 | Interact | E | ACTION button |
 | Eat berries | F | BERRY button |
 | Inventory / crafting | I / C | HUD buttons |
-| Zoom | Mouse wheel | + / − controls |
+| Zoom | Mouse wheel or + / − controls | + / − controls |
+| Close menu | Esc | Close button |
 
 ## Graphics and scene
 
@@ -38,7 +39,7 @@ The cinematic pass provides procedurally textured soil, wood, stone, shingles an
 
 ## Gameplay
 
-Explore an abandoned Midwestern farm at dusk. Collect wood, stone and scrap; forage berries; craft a hatchet, lantern and repair kit; search the barn for a fuel can and the chapel for a key; repair the stranded pickup truck and escape. Hunger, stamina, fog, lighting and a day/night cycle keep the farm oppressive. Save data is local to your browser.
+Explore an abandoned Midwestern farm at dusk. Collect wood, stone and scrap; forage berries; craft a hatchet, lantern and repair kit; search near the barn for a fuel can and the chapel for a key; repair the stranded pickup truck and escape. Hunger, stamina, fog, lighting and a day/night cycle keep the farm oppressive. The HUD points to the current objective and the map shows remaining supplies. The farmhouse porch restores health and stamina at a hunger cost. Cold rain thickens the fog and makes sprinting more tiring. Opening a menu pauses survival and movement. Progress is saved locally and can be resumed from the title screen.
 
 ## Free assets and license
 

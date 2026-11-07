@@ -1,24 +1,25 @@
 <!doctype html>
-<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><meta name="theme-color" content="#131915"><title>GOTHIC ISLAND | THE LAST HARVEST</title>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#131915"><title>GOTHIC ISLAND | THE LAST HARVEST</title>
 <link rel="stylesheet" href="style.css">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
 </head><body>
 <div id="loading"><div class="eyebrow">ASHCROFT COUNTY · 1931</div><div class="loadmark">GOTHIC<br><em>ISLAND</em></div><div class="loadline"></div><div class="tiny">THE LAST HARVEST</div></div>
-<div id="game"><div class="vignette"></div><div class="grain"></div>
+<div id="game" tabindex="-1" inert><div class="vignette"></div><div class="grain"></div><div class="rain" aria-hidden="true"></div>
 <header class="topbar"><div class="brand"><span class="cross">✝</span><div><strong>GOTHIC ISLAND</strong><small>ASHCROFT COUNTY · 1931</small></div></div><div class="timebox"><span id="weather">THE FOG IS COMING</span><b id="clock">18:42</b><span id="day">DAY 01</span></div></header>
 <aside class="stats"><div class="meter"><span>HEALTH</span><div class="gauge"><i id="healthBar"></i></div><b id="healthTxt">100</b></div><div class="meter"><span>HUNGER</span><div class="gauge"><i id="hungerBar"></i></div><b id="hungerTxt">100</b></div><div class="meter"><span>STAMINA</span><div class="gauge"><i id="staminaBar"></i></div><b id="staminaTxt">100</b></div></aside>
 <section class="quest"><span class="eyebrow">CHAPTER I · THE LONG WAY HOME</span><h2 id="questTitle">THE BROKEN ROAD</h2><p id="questText">納屋で燃料を探し、教会の鍵を見つけ、トラックを修理してこの土地から脱出しろ。</p><div class="questFoot"><span class="dot"></span><span id="questStatus">OBJECTIVE IN PROGRESS</span></div></section>
 <div id="compass"><span>W</span><b id="compassText">N · OLD FARM ROAD</b><span>E</span></div>
 <div id="marker"><span>◇</span><strong id="markerLabel">OLD BARN</strong><small id="markerDist">60m</small></div>
 <div id="prompt"><span class="keycap">E</span><div><b id="promptLabel">調べる</b><small id="promptSub">探索して物資を入手</small></div></div>
-<div id="notice" role="status"></div>
-<div id="inventory" class="drawer"><div class="drawerTitle"><span>FIELD BAG</span><button id="closeInventory">✕</button></div><p class="drawerInfo">持ち歩いているもの</p><div id="inventoryItems"></div><div class="diary">“The soil remembers everything.”<br><span>— THE ASHCROFT JOURNAL</span></div></div>
-<div id="craft" class="drawer"><div class="drawerTitle"><span>WORKBENCH</span><button id="closeCraft">✕</button></div><p class="drawerInfo">拾ったものから、生き残るための道具を作る</p><div id="recipes"></div></div>
-<div id="mapPanel" class="drawer"><div class="drawerTitle"><span>THE COUNTY MAP</span><button id="closeMap">✕</button></div><canvas id="miniMap" width="340" height="340"></canvas><p class="drawerInfo">道に沿って農場を探索しよう。◇は探索地点。</p></div>
+<div id="notice" role="status"></div><p id="saveStatus" role="status" hidden>進行状況を保存できません。</p>
+<div id="inventory" class="drawer"><div class="drawerTitle"><span>FIELD BAG</span><button id="closeInventory" aria-label="閉じる">✕</button></div><p class="drawerInfo">持ち歩いているもの</p><div id="inventoryItems"></div><div class="diary">“The soil remembers everything.”<br><span>— THE ASHCROFT JOURNAL</span></div></div>
+<div id="craft" class="drawer"><div class="drawerTitle"><span>WORKBENCH</span><button id="closeCraft" aria-label="閉じる">✕</button></div><p class="drawerInfo">拾ったものから、生き残るための道具を作る</p><div id="recipes"></div></div>
+<div id="mapPanel" class="drawer"><div class="drawerTitle"><span>THE COUNTY MAP</span><button id="closeMap" aria-label="閉じる">✕</button></div><canvas id="miniMap" width="340" height="340"></canvas><p class="drawerInfo">◇ 探索地点 · ■ 木材・石・スクラップ・ベリー</p></div>
 <div class="desktopKeys">W A S D <span>MOVE</span> · SHIFT <span>RUN</span> · E <span>INTERACT</span> · F <span>EAT</span> · I <span>BAG</span> · C <span>CRAFT</span> · M <span>MAP</span></div>
 <div id="mobile"><div class="stickBase" id="stick"><div class="stickKnob" id="knob"></div></div><div class="touchActions"><button id="mobileRun">RUN</button><button id="mobileEat">EAT</button><button id="mobileUse" class="touchMain">INTERACT</button><div class="touchMenu"><button id="mobileBag">BAG</button><button id="mobileCraft">CRAFT</button><button id="mobileMap">MAP</button></div></div></div>
+<div class="zoomControls"><button id="zoomIn" aria-label="拡大">＋</button><button id="zoomOut" aria-label="縮小">−</button></div>
 <nav class="quick"><button id="bagButton" title="バックパック">▦ <small>BAG</small></button><button id="craftButton" title="クラフト">⚒ <small>CRAFT</small></button><button id="mapButton" title="マップ">⌖ <small>MAP</small></button><button id="soundButton" title="音声のオン・オフ">♫ <small>SOUND</small></button></nav>
 </div>
-<div id="intro"><div class="introTint"></div><div class="introContent"><span class="eyebrow">A SURVIVAL STORY IN ASHCROFT COUNTY</span><h1>GOTHIC<br><em>ISLAND</em></h1><div class="rule"><span>✝</span></div><h3>THE LAST HARVEST</h3><p>夏は終わった。道は途切れ、町は消えた。<br>残っているのは枯れた畑と、誰もいない農場だけ。</p><button id="startButton">ENTER THE COUNTY <span>→</span></button><div class="introBottom">EXPLORE · SCAVENGE · SURVIVE · ESCAPE<br><small>FREE 3D SURVIVAL PROTOTYPE · BEST WITH HEADPHONES</small></div></div></div>
+<div id="intro"><div class="introTint"></div><div class="introContent"><span class="eyebrow">A SURVIVAL STORY IN ASHCROFT COUNTY</span><h1>GOTHIC<br><em>ISLAND</em></h1><div class="rule"><span>✝</span></div><h3>THE LAST HARVEST</h3><p>夏は終わった。道は途切れ、町は消えた。<br>残っているのは枯れた畑と、誰もいない農場だけ。</p><button id="startButton" disabled><span id="startLabel">ENTER THE COUNTY</span> <span>→</span></button><div class="introBottom">EXPLORE · SCAVENGE · SURVIVE · ESCAPE<br><small>FREE 3D SURVIVAL PROTOTYPE · BEST WITH HEADPHONES</small></div></div></div>
 <div id="ending" hidden><div class="endingInner"><span class="eyebrow">ASHCROFT COUNTY · SUNRISE</span><h1>YOU MADE IT OUT.</h1><p>あの農場は霧の向こうへ消えた。もう二度と戻ることはない。</p><button id="restartButton">PLAY AGAIN</button></div></div>
-<script type="module" src="game.js"></script></body></html>
+<script type="module" src="boot.js"></script></body></html>
