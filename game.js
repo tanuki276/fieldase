@@ -4,6 +4,7 @@ import {installCinematic} from './cinematic.js';
 import {createSurvival, stepSurvival, snapshotSurvival, safeZone, DIFFICULTIES, JOURNAL, igniteFlare, dodge, respawnSurvival} from './survival.js';
 import {createAtmosphere} from './atmosphere.js';
 import {SurvivalAudio} from './audio.js';
+import {FieldRenderer} from './field-renderer.js';
 // GOTHIC ISLAND — original interactive survival game. Kenney CC0 models are optional.
 const $=id=>document.getElementById(id), mobile=matchMedia('(pointer:coarse)').matches;
 const preferencesKey = 'gothic-island-settings-v1';
@@ -18,7 +19,14 @@ const audio = new SurvivalAudio();
 audio.setVolume(preferences.volume);
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x71796a);scene.fog=new THREE.FogExp2(0x777c6c,.016);
 const camera=new THREE.PerspectiveCamera(54,innerWidth/innerHeight,.1,320);
-const renderer=new THREE.WebGLRenderer({antialias:!mobile,powerPreference:'high-performance'});
+let renderer;
+try {
+  renderer=new THREE.WebGLRenderer({antialias:!mobile,powerPreference:'high-performance'});
+} catch {
+  renderer=new FieldRenderer();
+  $('compatibilityNote').hidden=false;
+  $('qualitySetting').disabled=true;
+}
 renderer.setPixelRatio(Math.min(devicePixelRatio,mobile?1.25:1.8));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.23;renderer.outputColorSpace=THREE.SRGBColorSpace;
 document.getElementById('game').prepend(renderer.domElement);
 const hemi=new THREE.HemisphereLight(0xb9c7c0,0x332a1b,1.6);scene.add(hemi);const sunlight=new THREE.DirectionalLight(0xffc89d,2.55);sunlight.position.set(-36,44,-24);sunlight.castShadow=true;sunlight.shadow.mapSize.set(mobile?512:2048,mobile?512:2048);sunlight.shadow.camera.left=-90;sunlight.shadow.camera.right=90;sunlight.shadow.camera.top=90;sunlight.shadow.camera.bottom=-90;sunlight.shadow.bias=-.001;scene.add(sunlight);
@@ -674,14 +682,14 @@ function frame(now) {
     v.set(p.position.x+15*cameraZoom,12.8*cameraZoom,p.position.z+21*cameraZoom);
     camera.position.lerp(v,1-Math.exp(-dt*3.5));
     look.set(p.position.x,1.2,p.position.z-4);camera.lookAt(look);
-    atmosphere.tick(world,p.position,dt,preferences.reducedMotion);
+    if(!renderer.isFieldRenderer)atmosphere.tick(world,p.position,dt,preferences.reducedMotion);
     audio.tick(dt,{moving,sprinting,crouching,threat:world.threat,storm:world.storm,health:state.health,paused:false});
     ui+=dt;saveTimer+=dt;
     if(ui>.15){updateUI();updateNavigation();updateSurvivalUI(crouching);ui=0;}
     if(saveTimer>10){save();saveTimer=0;}
   } else {
     camera.position.lerp(introCamera,1-Math.exp(-dt*.8));camera.lookAt(0,2,-25);
-    atmosphere.tick(world,p.position,0,preferences.reducedMotion);
+    if(!renderer.isFieldRenderer)atmosphere.tick(world,p.position,0,preferences.reducedMotion);
   }
   campFlame.scale.y=preferences.reducedMotion?1:.9+Math.sin(now*.013)*.14;
   campLight.intensity=preferences.reducedMotion?25:24+Math.sin(now*.009)*2;
@@ -708,6 +716,12 @@ addEventListener('resize',()=>{
   renderer.setSize(innerWidth,innerHeight);setQuality();
   if(activePanel||state.escaped)renderer.render(scene,camera);
 });
+renderer.setView?.(()=>({
+  player:{x:p.position.x,z:p.position.z},world,collisions,collectibles,notes:JOURNAL,
+  started:state.started,zoom:cameraZoom,hour:state.time,
+  crouching:crouchToggle||!!(key.ControlLeft||key.ControlRight),
+  lantern:state.lantern&&state.lanternOn,reducedMotion:preferences.reducedMotion
+}));
 updateUI();updateItems();updateJournal();requestAnimationFrame(frame);
 setTimeout(()=>$('loading').classList.add('done'),600);
 setTimeout(()=>$('loading').remove(),1400);
