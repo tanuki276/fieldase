@@ -27,10 +27,11 @@ An Internet connection is currently required to load the Three.js library and op
 | --- | --- | --- |
 | Move | WASD / arrows | Left joystick |
 | Sprint | Shift | RUN button |
-| Interact | E | ACTION button |
+| Interact / rest | E | INTERACT button |
 | Eat berries | F | BERRY button |
 | Inventory / crafting | I / C | HUD buttons |
-| Zoom | Mouse wheel | + / − controls |
+| Map | M | MAP button |
+| Pause / close menu | Esc | Ⅱ / close button |
 
 ## Graphics and scene
 
@@ -38,7 +39,7 @@ The cinematic pass provides procedurally textured soil, wood, stone, shingles an
 
 ## Gameplay
 
-Explore an abandoned Midwestern farm at dusk. Collect wood, stone and scrap; forage berries; craft a hatchet, lantern and repair kit; search the barn for a fuel can and the chapel for a key; repair the stranded pickup truck and escape. Hunger, stamina, fog, lighting and a day/night cycle keep the farm oppressive. Save data is local to your browser.
+Explore an abandoned Midwestern farm at dusk. Collect wood, stone and scrap; forage berries; craft a hatchet, lantern and repair kit; search the barn for a fuel can and the chapel for a key; repair the stranded pickup truck and escape. Hunger, stamina, fog, lighting and a day/night cycle keep the farm oppressive. The HUD points to the next story objective and nearby missing repair materials. The map marks your position and destination. Rest at the farmhouse to recover health and stamina in exchange for hunger and one in-game hour. Opening the bag, crafting panel, map or pause menu freezes the simulation. Progress saves automatically in your browser and can be resumed from the title screen.
 
 ## Free assets and license
 

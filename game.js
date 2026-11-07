@@ -13,9 +13,16 @@ const moon=new THREE.DirectionalLight(0x92b5ca,.2);moon.position.set(28,32,44);s
 const mat=(c,r=1,metal=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:metal,flatShading:true});
 const M={soil:mat(0x414536),dirt:mat(0x655c49),track:mat(0x74664e),grass:mat(0x67704b),grass2:mat(0x535f46),bark:mat(0x4a4237),bark2:mat(0x625141),wood:mat(0x66543f),woodLight:mat(0x9d8869),wall:mat(0x8c8972),white:mat(0xa8a18a),dark:mat(0x252b29),roof:mat(0x343630),rust:mat(0x854b3d),metal:mat(0x5b615b,.77,.2),glass:mat(0xc0b58e,.23,.12),stone:mat(0x777a6d),straw:mat(0xa18d59),black:mat(0x1a1c1b),shirt:mat(0x6c7061),skin:mat(0xb79b83),trousers:mat(0x383f3c),berries:mat(0x8c493a),light:new THREE.MeshStandardMaterial({color:0xdcb77c,emissive:0xe6a45e,emissiveIntensity:2.1}),fence:mat(0x746149)};
 function obj(g,m,x=0,y=0,z=0,p=scene,shadow=true){const o=new THREE.Mesh(g,m);o.position.set(x,y,z);o.castShadow=shadow;o.receiveShadow=true;p.add(o);return o}
-const cube=(w,h,d,m,x,y,z,p=scene)=>obj(new THREE.BoxGeometry(w,h,d),m,x,y,z,p);
-const cylinder=(t,b,h,m,x,y,z,p=scene,n=7)=>obj(new THREE.CylinderGeometry(t,b,h,n),m,x,y,z,p);
-const ball=(r,m,x,y,z,p=scene,s=1)=>obj(new THREE.IcosahedronGeometry(r,s),m,x,y,z,p);
+// Reuse immutable geometry for repeated scenery and character parts.
+const geometries = new Map();
+function geometry(Type, dimensions) {
+  const key = Type.name + ':' + dimensions.join(',');
+  if (!geometries.has(key)) geometries.set(key, new Type(...dimensions));
+  return geometries.get(key);
+}
+const cube = (w,h,d,m,x,y,z,p=scene) => obj(geometry(THREE.BoxGeometry,[w,h,d]),m,x,y,z,p);
+const cylinder = (t,b,h,m,x,y,z,p=scene,n=7) => obj(geometry(THREE.CylinderGeometry,[t,b,h,n]),m,x,y,z,p);
+const ball = (r,m,x,y,z,p=scene,s=1) => obj(geometry(THREE.IcosahedronGeometry,[r,s]),m,x,y,z,p);
 const group=(x,z)=>{let g=new THREE.Group();g.position.set(x,0,z);scene.add(g);return g};
 const random=((s)=>()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296})(1931);
 function R(a,b){return a+random()*(b-a)}
@@ -52,8 +59,8 @@ const armL=cube(.27,1.14,.36,M.shirt,-.64,1.48,0,body),armR=cube(.27,1.14,.36,M.
 const cinematic=installCinematic({THREE,scene,renderer,M,cube,cylinder,ball,group,p,mobile,collisions});
 const collectibles=[];function loot(type,x,z,label){let g=group(x,z);g.userData.type=type;if(type==='wood'){cylinder(.33,.39,1.4,M.bark,0,.68,0,g);ball(.58,M.grass2,0,1.48,0,g)}else if(type==='stone'){let s=ball(.67,M.stone,0,.46,0,g);s.scale.set(1.2,.8,1)}else if(type==='scrap'){cube(1,.34,.7,M.rust,0,.36,0,g);cube(.65,.65,.3,M.metal,0,.6,0,g)}else if(type==='food'){cube(.76,.43,.67,M.wood,0,.3,0,g);for(let i=0;i<4;i++)ball(.18,M.berries,(i-1.5)*.16,.63,R(-.15,.15),g)}else{cube(.8,.65,.7,type==='fuel'?M.rust:M.woodLight,0,.5,0,g);cube(.35,.12,.35,M.metal,0,.88,0,g)}collectibles.push({type,label,group:g,active:true});return g}
 for(const [type,coords] of Object.entries({wood:[[-15,8],[11,5],[24,9],[-45,-12],[41,13],[-17,39],[-15,63],[39,-13],[-6,-40],[50,-46]],stone:[[9,18],[-13,14],[18,-15],[-19,29],[42,27],[-48,-24],[7,-51],[-9,46]],scrap:[[12,-31],[29,-21],[39,-34],[8,-49],[-21,-5],[-28,25],[19,27],[-12,-59]],food:[[-19,-6],[9,28],[-34,18],[30,39],[-11,40],[-40,-3],[26,-2]]}))for(const [x,z] of coords)loot(type,x,z);
-loot('fuel',25,-27,'燃料缶');loot('key',-39,25,'車の鍵');
-const POI=[{x:0,z:-63,title:'STRANDED PICKUP',label:'壊れたトラック',action:'truck'},{x:25,z:-35,title:'OLD BARN',label:'古い納屋',action:'barn'},{x:-39,z:34,title:'ST. MARY CHAPEL',label:'廃教会',action:'chapel'},{x:-28,z:-11,title:'FARMHOUSE',label:'農場主の家',action:'house'}];
+loot('fuel',25,-27,'燃料缶');loot('key',-39,23,'車の鍵');
+const POI=[{x:0,z:-63,title:'STRANDED PICKUP',label:'壊れたトラック',action:'truck'},{x:25,z:-26,title:'OLD BARN',label:'古い納屋',action:'barn'},{x:-39,z:23,title:'ST. MARY CHAPEL',label:'廃教会',action:'chapel'},{x:-28,z:-3,title:'FARMHOUSE',label:'農場主の家',action:'house'}];
 const modelLoader=new GLTFLoader(),assetRoot='https://cdn.jsdelivr.net/gh/Hidencod/tge-assets@main/packs/';
 const assetCache=new Map();let modelInstances=0;
 function freeModel(pack,name,x,z,scale=1,ry=0){
@@ -76,61 +83,275 @@ for(let i=0;i<(mobile?7:18);i++)freeModel('nature-kit','plant-bushdetailed',-65+
 for(let i=0;i<6;i++)freeModel('nature-kit','log-stack',18+(i%3)*3,-12+Math.floor(i/3)*4,1.5,i*.8);
 for(let i=0;i<8;i++)freeModel('nature-kit','crops-cornstaged',12+i*3.3,64,1.55,0);
 
-const saveKey='gothic-island-1931-v2';const inv={wood:0,stone:0,scrap:0,food:0};const state={health:100,hunger:100,stamina:100,time:18.7,day:1,hatchet:false,lantern:false,repairKit:false,fuel:false,key:false,escaped:false,started:false};
-try{const data=JSON.parse(localStorage.getItem(saveKey)||'null');if(data?.state&&!data.state.escaped){Object.assign(state,data.state);Object.assign(inv,data.inv);if(Number.isFinite(data.x)&&Number.isFinite(data.z))p.position.set(data.x,0,data.z);(data.collected||[]).forEach(i=>{const o=collectibles[i];if(o){o.active=false;scene.remove(o.group)}})}}catch(e){}
+const saveKey = 'gothic-island-1931-v2';
+const inv = {wood: 0, stone: 0, scrap: 0, food: 0};
+const state = {
+  health: 100, hunger: 100, stamina: 100, time: 18.7, day: 1,
+  hatchet: false, lantern: false, repairKit: false, fuel: false, key: false,
+  escaped: false, started: false
+};
+const panels = ['inventory', 'craft', 'mapPanel', 'pausePanel'];
+let activePanel = null;
+let returnFocus = null;
+const canPlay = () => state.started && !state.escaped && !activePanel && !document.hidden;
+const clamp = THREE.MathUtils.clamp;
+
+function readSave() {
+  try {
+    const data = JSON.parse(localStorage.getItem(saveKey));
+    if (!data?.state || data.state.escaped) return false;
+    for (const [name, fallback] of Object.entries(state)) {
+      if (name === 'started') continue;
+      const value = data.state[name];
+      if (typeof fallback === 'boolean') state[name] = value === true;
+      else if (Number.isFinite(value)) {
+        state[name] = name === 'day' ? Math.max(1, Math.floor(value))
+          : clamp(value, 0, name === 'time' ? 23.999 : 100);
+      }
+    }
+    for (const name of Object.keys(inv)) {
+      if (Number.isFinite(data.inv?.[name])) inv[name] = Math.max(0, Math.floor(data.inv[name]));
+    }
+    if (Number.isFinite(data.x) && Number.isFinite(data.z)) {
+      p.position.set(clamp(data.x, -112, 112), 0, clamp(data.z, -112, 112));
+    }
+    for (const index of Array.isArray(data.collected) ? data.collected : []) {
+      const item = Number.isInteger(index) && collectibles[index];
+      if (!item) continue;
+      if ((item.type === 'fuel' || item.type === 'key') && !state[item.type]) continue;
+      item.active = false;
+      scene.remove(item.group);
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+const hasSave = readSave();
+if (hasSave) $('startLabel').textContent = 'CONTINUE';
+
 const itemLabels={wood:'WOOD',stone:'STONE',scrap:'SCRAP',food:'BERRIES'},icons={wood:'🪵',stone:'◈',scrap:'⚙',food:'●'};
 const recipes=[{name:'STONE HATCHET',desc:'木材 ×2 · 石 ×2',cost:{wood:2,stone:2},flag:'hatchet',done:'石の斧を作った。木材を多く採れる。'},{name:'OIL LANTERN',desc:'スクラップ ×3 · 木材 ×1',cost:{scrap:3,wood:1},flag:'lantern',done:'ランタンを灯した。暗闇でも道が見える。'},{name:'REPAIR KIT',desc:'木材 ×4 · 石 ×2 · スクラップ ×4',cost:{wood:4,stone:2,scrap:4},flag:'repairKit',done:'トラック修理キットを作った。'}];
+const repairCost = recipes.find(recipe => recipe.flag === 'repairKit').cost;
 let toastTimeout;function toast(t){$('notice').textContent=t;$('notice').classList.add('show');clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>$('notice').classList.remove('show'),2900)}
-function save(){try{localStorage.setItem(saveKey,JSON.stringify({state,inv,x:p.position.x,z:p.position.z,collected:collectibles.map((o,i)=>o.active?null:i).filter(i=>i!==null)}))}catch(e){}}
+function save() {
+  if (!state.started || state.escaped) return;
+  try {
+    localStorage.setItem(saveKey, JSON.stringify({
+      state, inv, x: p.position.x, z: p.position.z,
+      collected: collectibles.flatMap((item, index) => item.active ? [] : [index])
+    }));
+  } catch {}
+}
+function restart() {
+  try {
+    localStorage.removeItem(saveKey);
+  } catch {}
+  state.started = false;
+  location.reload();
+}
+addEventListener('pagehide', save);
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    clearInput();
+    save();
+  }
+});
+
 function updateUI(){for(const [id,v] of [['health',state.health],['hunger',state.hunger],['stamina',state.stamina]]){$(id+'Bar').style.width=Math.round(v)+'%';$(id+'Txt').textContent=Math.round(v)}
 $('clock').textContent=String(Math.floor(state.time)%24).padStart(2,'0')+':'+String(Math.floor((state.time%1)*60)).padStart(2,'0');$('day').textContent='DAY '+String(state.day).padStart(2,'0');
 $('weather').textContent=state.time%24>20||state.time%24<6?'THE NIGHT IS WATCHING':'THE FOG IS COMING';
-let task= !state.fuel?'納屋を探索し、燃料缶を手に入れる。':!state.key?'教会へ向かい、トラックの鍵を探す。':!state.repairKit?'木材 ×4・石 ×2・スクラップ ×4 を集め、修理キットを作る。':'トラックに戻り、エンジンを修理して脱出する。';
-$('questText').textContent=task;$('questTitle').textContent=state.repairKit&&state.key&&state.fuel?'THE WAY OUT':'THE BROKEN ROAD';
+const materials = Object.entries(repairCost).map(([item, cost]) =>
+  ({wood: '木材', stone: '石', scrap: 'スクラップ'})[item] + ' ' + Math.min(inv[item], cost) + '/' + cost
+).join('・');
+const task = !state.fuel ? '納屋を探索し、燃料缶を手に入れる。'
+  : !state.key ? '教会へ向かい、トラックの鍵を探す。'
+  : !state.repairKit ? '修理キットの素材を集める。' + materials
+  : 'トラックに戻り、エンジンを修理して脱出する。';
+$('questText').textContent = task;
+$('questTitle').textContent = state.repairKit && state.key && state.fuel ? 'THE WAY OUT' : 'THE BROKEN ROAD';
+$('questStatus').textContent = [state.fuel, state.key, state.repairKit].filter(Boolean).length + ' / 3 · ESCAPE SUPPLIES';
+}
+function updateItems(){
 $('inventoryItems').innerHTML=Object.entries(inv).map(([k,v])=>'<div class="item"><b>'+icons[k]+' '+v+'</b><span>'+itemLabels[k]+'</span></div>').join('')+['hatchet','lantern','fuel','key','repairKit'].map(k=>'<div class="item"><b>'+(state[k]?'✓':'—')+'</b><span>'+({hatchet:'HATCHET',lantern:'LANTERN',fuel:'FUEL',key:'TRUCK KEY',repairKit:'REPAIR KIT'}[k])+'</span></div>').join('');
-$('recipes').innerHTML='';recipes.forEach(r=>{let el=document.createElement('div');el.className='recipe';let d=document.createElement('div');let b=document.createElement('button');d.innerHTML='<b>'+r.name+'</b><small>'+r.desc+'</small>';b.textContent=state[r.flag]?'CRAFTED':'CRAFT';b.disabled=!!state[r.flag]||!Object.entries(r.cost).every(([k,v])=>inv[k]>=v);b.onclick=()=>{for(let [k,v] of Object.entries(r.cost))inv[k]-=v;state[r.flag]=true;toast(r.done);save();updateUI()};el.append(d,b);$('recipes').append(el)})}
+$('recipes').innerHTML='';recipes.forEach(r=>{let el=document.createElement('div');el.className='recipe';let d=document.createElement('div');let b=document.createElement('button');d.innerHTML='<b>'+r.name+'</b><small>'+r.desc+'</small>';b.textContent=state[r.flag]?'CRAFTED':'CRAFT';b.disabled=!!state[r.flag]||!Object.entries(r.cost).every(([k,v])=>inv[k]>=v);b.onclick=()=>{if(activePanel!=='craft'||b.disabled)return;for(let [k,v] of Object.entries(r.cost))inv[k]-=v;state[r.flag]=true;toast(r.done);save();updateUI();updateItems();($('recipes').querySelector('button:not(:disabled)')||$('closeCraft')).focus()};el.append(d,b);$('recipes').append(el)})}
 function nearest(){let n=null,best=4;for(const o of collectibles){if(!o.active)continue;let d=o.group.position.distanceTo(p.position);if(d<best){n=o;best=d}}for(const poi of POI){let d=Math.hypot(p.position.x-poi.x,p.position.z-poi.z);if(d<best){n=poi;best=d}}return n}
-function interact(){if(!state.started||state.escaped)return;const n=nearest();if(!n){toast('もう少し近づいて調べよう。');return}if(n.group){if(n.type==='fuel'){state.fuel=true;toast('燃料缶を見つけた。トラックに使える。')}else if(n.type==='key'){state.key=true;toast('錆びた鍵を見つけた。車の鍵だ。')}else{inv[n.type]+=n.type==='wood'&&state.hatchet?2:1;toast(({wood:'木材',stone:'石',scrap:'スクラップ',food:'ベリー'})[n.type]+'を手に入れた。')}n.active=false;scene.remove(n.group)}
-else if(n.action==='truck'){if(state.fuel&&state.key&&state.repairKit){state.escaped=true;$('ending').hidden=false;toast('脱出成功！');localStorage.removeItem(saveKey)}else toast('燃料・鍵・修理キットが必要だ。')}
+function interact(){if(!canPlay())return;const n=nearest();if(!n){toast('もう少し近づいて調べよう。');return}if(n.group){if(n.type==='fuel'){state.fuel=true;toast('燃料缶を見つけた。トラックに使える。')}else if(n.type==='key'){state.key=true;toast('錆びた鍵を見つけた。車の鍵だ。')}else{inv[n.type]+=n.type==='wood'&&state.hatchet?2:1;toast(({wood:'木材',stone:'石',scrap:'スクラップ',food:'ベリー'})[n.type]+'を手に入れた。')}n.active=false;scene.remove(n.group)}
+else if(n.action==='truck'){if(state.fuel&&state.key&&state.repairKit){state.escaped=true;$('ending').hidden=false;toast('脱出成功！');try{localStorage.removeItem(saveKey)}catch{}$('restartButton').focus()}else toast('燃料・鍵・修理キットが必要だ。')}
 else if(n.action==='barn')toast(state.fuel?'納屋は静まり返っている。':'納屋の裏に燃料がありそうだ。');
 else if(n.action==='chapel')toast(state.key?'冷たい風だけが通り過ぎる。':'教会の入口の近くに鍵が落ちている。');
-else toast('誰かがここで暮らしていた。もう誰もいない。');
-save();updateUI()}
-function eat(){if(!state.started)return;if(inv.food<=0){toast('食べられるものを持っていない。');return}inv.food--;state.hunger=Math.min(100,state.hunger+32);state.health=Math.min(100,state.health+6);toast('ベリーを食べた。空腹が少し和らいだ。');save();updateUI()}
-function toggle(id){for(let k of ['inventory','craft','mapPanel'])if(k!==id)$(k).classList.remove('open');$(id).classList.toggle('open');if(id==='mapPanel')drawMap()}
-$('bagButton').onclick=$('mobileBag').onclick=()=>toggle('inventory');$('craftButton').onclick=$('mobileCraft').onclick=()=>toggle('craft');$('mapButton').onclick=$('mobileMap').onclick=()=>toggle('mapPanel');
-$('closeInventory').onclick=()=>$('inventory').classList.remove('open');$('closeCraft').onclick=()=>$('craft').classList.remove('open');$('closeMap').onclick=()=>$('mapPanel').classList.remove('open');
-$('mobileUse').onclick=interact;$('mobileEat').onclick=eat;
-$('restartButton').onclick=()=>{localStorage.removeItem(saveKey);location.reload()};
+else if (state.hunger < 20) toast('空腹で休めない。先にベリーを食べよう。');
+else if (state.health === 100 && state.stamina === 100) toast('ここで体力とスタミナを回復できる。');
+else {
+  state.hunger -= 15;
+  state.health = Math.min(100, state.health + 35);
+  state.stamina = 100;
+  advanceTime(1);
+  toast('農家の軒先で休み、体力を回復した。');
+}
+save();updateUI();updateItems()}
+function eat(){if(!canPlay())return;if(state.hunger===100&&state.health===100){toast('今は食べる必要がない。');return}if(inv.food<=0){toast('食べられるものを持っていない。');return}inv.food--;state.hunger=Math.min(100,state.hunger+32);state.health=Math.min(100,state.health+6);toast('ベリーを食べた。空腹が少し和らいだ。');save();updateUI();updateItems()}
+function toggle(id) {
+  if (!state.started || state.escaped) return;
+  if (!activePanel) returnFocus = document.activeElement;
+  activePanel = activePanel === id ? null : id;
+  clearInput();
+  for (const panel of panels) $(panel).classList.toggle('open', panel === activePanel);
+  $('prompt').classList.remove('show');
+  if (activePanel) {
+    save();
+    if (activePanel === 'mapPanel') drawMap();
+    $(activePanel).querySelector('button').focus();
+  } else {
+    returnFocus?.focus();
+  }
+}
+for (const [id, buttons] of [
+  ['inventory', ['bagButton', 'mobileBag', 'closeInventory']],
+  ['craft', ['craftButton', 'mobileCraft', 'closeCraft']],
+  ['mapPanel', ['mapButton', 'mobileMap', 'closeMap']],
+  ['pausePanel', ['pauseButton', 'mobilePause', 'resumeButton']]
+]) {
+  for (const button of buttons) $(button).onclick = () => toggle(id);
+}
+$('mobileUse').onclick = interact;
+$('mobileEat').onclick = eat;
+$('restartButton').onclick = restart;
+$('newGameButton').onclick = () => {
+  if (confirm('セーブを消して最初から遊びますか？')) restart();
+};
+$('newGameButton').hidden = !hasSave;
+
 let soundOn=false,audioCtx,windOsc,windGain;
 function initSound(){if(audioCtx)return;audioCtx=new (window.AudioContext||window.webkitAudioContext)();windOsc=audioCtx.createOscillator();windGain=audioCtx.createGain();const filter=audioCtx.createBiquadFilter();filter.type='lowpass';filter.frequency.value=110;windOsc.type='sawtooth';windOsc.frequency.value=48;windGain.gain.value=.035;windOsc.connect(filter);filter.connect(windGain);windGain.connect(audioCtx.destination);windOsc.start()}
-$('soundButton').onclick=()=>{soundOn=!soundOn;if(soundOn)initSound();if(audioCtx)windGain.gain.value=soundOn?.035:0;$('soundButton').style.color=soundOn?'#e6c782':''};
-$('startButton').onclick=()=>{state.started=true;$('intro').style.display='none';$('loading').style.display='none';toast('霧の中へ。納屋と教会を調べよう。');save()};
-const key={};addEventListener('keydown',e=>{if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();key[e.code]=true;if(e.repeat)return;if(e.code==='KeyE')interact();if(e.code==='KeyF')eat();if(e.code==='KeyI')toggle('inventory');if(e.code==='KeyC')toggle('craft');if(e.code==='KeyM')toggle('mapPanel')});
-addEventListener('keyup',e=>key[e.code]=false);addEventListener('blur',()=>{for(const k of Object.keys(key))key[k]=false;axis.x=axis.y=0});
-const axis={x:0,y:0};let stickPointer=null;const stick=$('stick'),knob=$('knob');
+$('soundButton').onclick=()=>{soundOn=!soundOn;if(soundOn){try{initSound();audioCtx.resume().catch(()=>{});}catch{soundOn=false;toast('このブラウザでは音声を再生できない。')}}$('soundButton').setAttribute('aria-pressed',String(soundOn));if(windGain)windGain.gain.value=soundOn?.035:0;$('soundButton').style.color=soundOn?'#e6c782':''};
+$('startButton').onclick=()=>{state.started=true;$('intro').style.display='none';(mobile ? $('mobilePause') : $('pauseButton')).focus();toast('霧の中へ。納屋と教会を調べよう。');save()};
+const key = {};
+const movementKeys = new Set([
+  'KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowLeft', 'ArrowDown', 'ArrowRight',
+  'ShiftLeft', 'ShiftRight'
+]);
+addEventListener('keydown', event => {
+  if (!state.started || state.escaped || event.ctrlKey || event.metaKey || event.altKey) return;
+  if (canPlay() && movementKeys.has(event.code)) {
+    event.preventDefault();
+    key[event.code] = true;
+  }
+  if (event.repeat) return;
+  if (event.code === 'Escape') toggle(activePanel || 'pausePanel');
+  if (event.code === 'KeyE') interact();
+  if (event.code === 'KeyF') eat();
+  if (event.code === 'KeyI') toggle('inventory');
+  if (event.code === 'KeyC') toggle('craft');
+  if (event.code === 'KeyM') toggle('mapPanel');
+});
+addEventListener('keyup', event => delete key[event.code]);
+addEventListener('blur', clearInput);
+const axis = {x: 0, y: 0};
+let stickPointer = null;
+let runPointer = null;
+const stick = $('stick'), knob = $('knob');
+function clearInput() {
+  for (const code of Object.keys(key)) delete key[code];
+  stickPointer = runPointer = null;
+  axis.x = axis.y = 0;
+  knob.style.transform = 'none';
+}
 function updateStick(e){const r=stick.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let x=(e.clientX-cx)/(r.width*.37),y=(e.clientY-cy)/(r.height*.37);let m=Math.max(1,Math.hypot(x,y));axis.x=x/m;axis.y=y/m;knob.style.transform='translate('+(axis.x*(r.width*.34))+'px,'+(axis.y*(r.height*.34))+'px)'}
-stick.addEventListener('pointerdown',e=>{e.preventDefault();stickPointer=e.pointerId;stick.setPointerCapture(e.pointerId);updateStick(e)});stick.addEventListener('pointermove',e=>{if(e.pointerId===stickPointer)updateStick(e)});
-for(const ev of ['pointerup','pointercancel','lostpointercapture'])stick.addEventListener(ev,()=>{stickPointer=null;axis.x=axis.y=0;knob.style.transform='none'});
-let touchRun=false;$('mobileRun').addEventListener('pointerdown',e=>{e.preventDefault();touchRun=true;$('mobileRun').setPointerCapture(e.pointerId)});for(let ev of ['pointerup','pointercancel','lostpointercapture'])$('mobileRun').addEventListener(ev,()=>touchRun=false);
-function drawMap(){const c=$('miniMap'),ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.fillStyle='#1e2821';ctx.fillRect(0,0,w,h);let at=(x,z)=>[(x+80)/160*w,(z+80)/160*h];ctx.strokeStyle='#8a7d5655';ctx.lineWidth=15;ctx.beginPath();ctx.moveTo(...at(0,-80));ctx.lineTo(...at(0,78));ctx.stroke();ctx.lineWidth=9;ctx.beginPath();ctx.moveTo(...at(-30,-30));ctx.lineTo(...at(30,-30));ctx.stroke();
-for(let q of POI){let [x,y]=at(q.x,q.z);ctx.fillStyle='#d5b77d';ctx.font='bold 12px Georgia';ctx.fillText('◇',x-6,y-3);ctx.fillStyle='#d0c1a5';ctx.font='9px Arial';ctx.fillText(q.title,x+8,y+9)}let[x,y]=at(p.position.x,p.position.z);ctx.fillStyle='#d4e2cb';ctx.beginPath();ctx.arc(x,y,5,0,Math.PI*2);ctx.fill()}
-let last=performance.now(),ui=0,saveTimer=0;const v=new THREE.Vector3(),look=new THREE.Vector3(),vel=new THREE.Vector3();let walkPhase=0;
+stick.addEventListener('pointerdown', event => {
+  if (!canPlay() || stickPointer !== null) return;
+  event.preventDefault();
+  stickPointer = event.pointerId;
+  stick.setPointerCapture(event.pointerId);
+  updateStick(event);
+});
+stick.addEventListener('pointermove', event => {
+  if (event.pointerId === stickPointer) updateStick(event);
+});
+const runButton = $('mobileRun');
+runButton.addEventListener('pointerdown', event => {
+  if (!canPlay() || runPointer !== null) return;
+  event.preventDefault();
+  runPointer = event.pointerId;
+  runButton.setPointerCapture(event.pointerId);
+});
+for (const event of ['pointerup', 'pointercancel', 'lostpointercapture']) {
+  stick.addEventListener(event, ({pointerId}) => {
+    if (pointerId !== stickPointer) return;
+    stickPointer = null;
+    axis.x = axis.y = 0;
+    knob.style.transform = 'none';
+  });
+  runButton.addEventListener(event, ({pointerId}) => {
+    if (pointerId === runPointer) runPointer = null;
+  });
+}
+
+function advanceTime(hours) {
+  state.time += hours;
+  if (state.time >= 24) {
+    state.day++;
+    state.time -= 24;
+  }
+}
+function objective() {
+  if (!state.fuel) return POI[1];
+  if (!state.key) return POI[2];
+  if (state.repairKit) return POI[0];
+  let target = null;
+  let resource;
+  let best = Infinity;
+  for (const item of collectibles) {
+    if (!item.active || !(inv[item.type] < repairCost[item.type])) continue;
+    const distance = item.group.position.distanceToSquared(p.position);
+    if (distance >= best) continue;
+    best = distance;
+    target = item.group.position;
+    resource = item.type;
+  }
+  return target ? {x: target.x, z: target.z, title: itemLabels[resource]} : null;
+}
+
+function drawMap(){const c=$('miniMap'),ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.fillStyle='#1e2821';ctx.fillRect(0,0,w,h);let at=(x,z)=>[(x+120)/240*w,(z+120)/240*h];ctx.strokeStyle='#8a7d5655';ctx.lineWidth=15;ctx.beginPath();ctx.moveTo(...at(0,-80));ctx.lineTo(...at(0,78));ctx.stroke();ctx.lineWidth=9;ctx.beginPath();ctx.moveTo(...at(-30,-30));ctx.lineTo(...at(30,-30));ctx.stroke();
+for(let q of POI){let [x,y]=at(q.x,q.z);ctx.fillStyle='#d5b77d';ctx.font='bold 12px Georgia';ctx.fillText('◇',x-6,y-3);ctx.fillStyle='#d0c1a5';ctx.font='9px Arial';ctx.fillText(q.title,x+8,y+9)}const target=objective();if(target){const [tx,ty]=at(target.x,target.z);ctx.strokeStyle='#ffcd79';ctx.lineWidth=2;ctx.beginPath();ctx.arc(tx,ty,9,0,Math.PI*2);ctx.stroke()}let[x,y]=at(p.position.x,p.position.z);ctx.fillStyle='#d4e2cb';ctx.beginPath();ctx.arc(x,y,5,0,Math.PI*2);ctx.fill()}
+let last=performance.now(),ui=0,saveTimer=0;const v=new THREE.Vector3(),look=new THREE.Vector3(),introCamera=new THREE.Vector3(27,21,46);let walkPhase=0;
+function blocked(x, z) {
+  return collisions.some(c => Math.abs(x-c.x)<c.w/2+.7 && Math.abs(z-c.z)<c.d/2+.7);
+}
 function frame(now){requestAnimationFrame(frame);const dt=Math.min(.05,(now-last)/1000);last=now;
-if(state.started&&!state.escaped){let x=Number(key.KeyD||key.ArrowRight)-Number(key.KeyA||key.ArrowLeft)+axis.x,z=Number(key.KeyS||key.ArrowDown)-Number(key.KeyW||key.ArrowUp)+axis.y;let len=Math.hypot(x,z);
-if(len>.12){x/=Math.max(1,len);z/=Math.max(1,len);let sprint=(key.ShiftLeft||key.ShiftRight||touchRun)&&state.stamina>3;const speed=sprint?9:5.2;const nx=THREE.MathUtils.clamp(p.position.x+x*speed*dt,-112,112),nz=THREE.MathUtils.clamp(p.position.z+z*speed*dt,-112,112);
-if(!collisions.some(c=>Math.abs(nx-c.x)<c.w/2+.7&&Math.abs(nz-c.z)<c.d/2+.7)){p.position.x=nx;p.position.z=nz}
-p.rotation.y=THREE.MathUtils.lerp(p.rotation.y,Math.atan2(-x,-z),Math.min(1,dt*13));walkPhase+=dt*(sprint?14:9);armL.rotation.x=Math.sin(walkPhase)*.36;armR.rotation.x=-Math.sin(walkPhase)*.36;legL.rotation.x=-Math.sin(walkPhase)*.38;legR.rotation.x=Math.sin(walkPhase)*.38;body.position.y=Math.abs(Math.sin(walkPhase))*.05;
-state.stamina=Math.max(0,Math.min(100,state.stamina+dt*(sprint?-11:-1)))}else{state.stamina=Math.min(100,state.stamina+dt*10);armL.rotation.x*=.85;armR.rotation.x*=.85;legL.rotation.x*=.85;legR.rotation.x*=.85;body.position.y*=.8}
-state.time+=dt*.019;if(state.time>=24){state.time-=24;state.day++}state.hunger=Math.max(0,state.hunger-dt*.15);if(state.hunger<10)state.health=Math.max(0,state.health-dt*.8);if(state.health<=0){state.health=90;state.hunger=45;p.position.set(0,0,9);toast('意識を失った。道の入口で目覚めた。')}
+if (activePanel || document.hidden || state.escaped) return;
+if(canPlay()){let x=Number(!!(key.KeyD||key.ArrowRight))-Number(!!(key.KeyA||key.ArrowLeft))+axis.x,z=Number(!!(key.KeyS||key.ArrowDown))-Number(!!(key.KeyW||key.ArrowUp))+axis.y;let len=Math.hypot(x,z);
+if(len>.12){x/=Math.max(1,len);z/=Math.max(1,len);let sprint=(key.ShiftLeft||key.ShiftRight||runPointer!==null)&&state.stamina>3;const speed=sprint?9:5.2;const nx=THREE.MathUtils.clamp(p.position.x+x*speed*dt,-112,112),nz=THREE.MathUtils.clamp(p.position.z+z*speed*dt,-112,112);
+if (!blocked(nx, p.position.z)) p.position.x = nx;
+if (!blocked(p.position.x, nz)) p.position.z = nz;
+const heading = Math.atan2(-x, -z) - p.rotation.y;
+p.rotation.y += Math.atan2(Math.sin(heading), Math.cos(heading)) * Math.min(1, dt * 13);
+walkPhase+=dt*(sprint?14:9);armL.rotation.x=Math.sin(walkPhase)*.36;armR.rotation.x=-Math.sin(walkPhase)*.36;legL.rotation.x=-Math.sin(walkPhase)*.38;legR.rotation.x=Math.sin(walkPhase)*.38;body.position.y=Math.abs(Math.sin(walkPhase))*.05;
+state.stamina=Math.max(0,Math.min(100,state.stamina+dt*(sprint?-11:5)))}else{state.stamina=Math.min(100,state.stamina+dt*10);armL.rotation.x*=.85;armR.rotation.x*=.85;legL.rotation.x*=.85;legR.rotation.x*=.85;body.position.y*=.8}
+advanceTime(dt*.019);state.hunger=Math.max(0,state.hunger-dt*.15);if(state.hunger<10)state.health=Math.max(0,state.health-dt*.8);if(state.health<=0){state.health=90;state.hunger=45;p.position.set(0,0,9);toast('意識を失った。道の入口で目覚めた。')}
 let hour=state.time;const daylight=Math.max(0,Math.sin((hour-5)/14*Math.PI));sunlight.intensity=.18+daylight*2.6;moon.intensity=.2+(1-daylight)*.72;hemi.intensity=.45+daylight*1.2;scene.fog.density=.019+(1-daylight)*.014;scene.background.setRGB(.17+daylight*.32,.20+daylight*.32,.18+daylight*.28);light.intensity=8+(1-daylight)*9;lanternLight.intensity=state.lantern?8:0;lanternLight.position.set(p.position.x,p.position.y+2.4,p.position.z+.3);
 const camTarget=v.set(p.position.x+15,12.8,p.position.z+21);camera.position.lerp(camTarget,1-Math.exp(-dt*3.5));look.set(p.position.x,1.2,p.position.z-4);camera.lookAt(look);
-let target=POI.filter(o=>!(o.action==='barn'&&state.fuel)&&!(o.action==='chapel'&&state.key)).sort((a,b)=>Math.hypot(p.position.x-a.x,p.position.z-a.z)-Math.hypot(p.position.x-b.x,p.position.z-b.z))[0]||POI[0];
-$('markerLabel').textContent=target.title;$('markerDist').textContent=Math.round(Math.hypot(target.x-p.position.x,target.z-p.position.z))+'m';$('compassText').textContent='N · '+(p.position.z>12?'NORTH FIELDS':p.position.z< -22?'OLD FARM ROAD':'ASHCROFT FARM');
-const n=nearest();$('prompt').classList.toggle('show',!!n);if(n){$('promptLabel').textContent=n.group?(n.type==='fuel'?'燃料缶を拾う':n.type==='key'?'車の鍵を拾う':'素材を集める'):n.label+'を調べる';$('promptSub').textContent=n.group?'調べてバックパックに入れる':'周囲を探索する'}
-ui+=dt;saveTimer+=dt;if(ui>.3){updateUI();ui=0}if(saveTimer>15){save();saveTimer=0}
-}else if(!state.started){camera.position.lerp(new THREE.Vector3(27,21,46),1-Math.exp(-dt*.8));camera.lookAt(0,2,-25);sunlight.position.x=-38+Math.sin(now*.00018)*7}
+ui += dt;
+if (ui > .15) {
+  const target = objective();
+  $('markerLabel').textContent = target?.title ?? 'WORKBENCH';
+  if (target) {
+    const dx = target.x - p.position.x, dz = target.z - p.position.z;
+    const distance = Math.hypot(dx, dz);
+    const directions = ['↑', '↗', '→', '↘', '↓', '↙', '←', '↖'];
+    const bearing = (Math.round(Math.atan2(dx, -dz) / (Math.PI / 4)) + 8) % 8;
+    $('markerDist').textContent = (distance >= 2 ? directions[bearing] + ' ' : '') + Math.round(distance) + 'm';
+  } else {
+    $('markerDist').textContent = '修理キットを作る';
+  }
+  $('compassText').textContent = 'N · ' + (p.position.z > 12 ? 'SOUTH FIELDS' : p.position.z < -22 ? 'OLD FARM ROAD' : 'ASHCROFT FARM');
+  updateUI();
+  ui = 0;
+}
+const n=nearest();$('prompt').classList.toggle('show',!!n);if(n){$('promptLabel').textContent=n.group?(n.type==='fuel'?'燃料缶を拾う':n.type==='key'?'車の鍵を拾う':'素材を集める'):n.action==='house'?'農家の軒先で休む':n.label+'を調べる';$('promptSub').textContent=n.group?'調べてバックパックに入れる':n.action==='house'?'空腹度15を使って体力とスタミナを回復':'周囲を探索する'}
+saveTimer+=dt;if(saveTimer>15){save();saveTimer=0}
+}else if(!state.started){camera.position.lerp(introCamera,1-Math.exp(-dt*.8));camera.lookAt(0,2,-25);sunlight.position.x=-38+Math.sin(now*.00018)*7}
 cinematic.tick(now,dt,p.position,state.time);
 renderer.render(scene,camera)}
-addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,mobile?1.25:1.8))});
-updateUI();requestAnimationFrame(frame);setTimeout(()=>$('loading').classList.add('done'),600);setTimeout(()=>$('loading').remove(),1400);
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,mobile?1.25:1.8));if(activePanel||state.escaped)renderer.render(scene,camera)});
+updateUI();updateItems();requestAnimationFrame(frame);setTimeout(()=>$('loading').classList.add('done'),600);setTimeout(()=>$('loading').remove(),1400);
