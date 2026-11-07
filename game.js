@@ -252,8 +252,9 @@ document.addEventListener('visibilitychange', () => {
 });
 
 function updateUI(){for(const [id,v] of [['health',state.health],['hunger',state.hunger],['stamina',state.stamina]]){$(id+'Bar').style.width=Math.round(v)+'%';$(id+'Txt').textContent=Math.round(v)}
-$('clock').textContent=String(Math.floor(state.time)%24).padStart(2,'0')+':'+String(Math.floor((state.time%1)*60)).padStart(2,'0');$('day').textContent='DAY '+String(state.day).padStart(2,'0');
-$('weather').textContent=state.time%24>20||state.time%24<6?'THE NIGHT IS WATCHING':'THE FOG IS COMING';
+const minutes=Math.floor(state.time*60);
+$('clock').textContent=String(Math.floor(minutes/60)%24).padStart(2,'0')+':'+String(minutes%60).padStart(2,'0');
+$('day').textContent='DAY '+String(state.day).padStart(2,'0');
 const materials = Object.entries(repairCost).map(([item, cost]) =>
   ({wood: '木材', stone: '石', scrap: 'スクラップ'})[item] + ' ' + Math.min(inv[item], cost) + '/' + cost
 ).join('・');
@@ -433,6 +434,7 @@ $('difficultySetting').onchange=$('titleDifficulty').onchange=setDifficulty;
 $('startButton').onclick=()=>{
   state.started=true;
   $('intro').style.display='none';
+  $('game').classList.remove('titleScreen');
   (mobile?$('mobilePause'):$('pauseButton')).focus();
   toast(hasSave?'探索を再開した。Jで記録、Escで操作方法を確認できる。':'畑には何かがいる。Shiftで走る、Ctrlで隠れる、Qで発炎筒。');
   save();
