@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {installCinematic} from './cinematic.js';
 // GOTHIC ISLAND — original interactive survival game. Kenney CC0 models are optional.
 const $=id=>document.getElementById(id), mobile=matchMedia('(pointer:coarse)').matches;
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x71796a);scene.fog=new THREE.FogExp2(0x777c6c,.016);
@@ -48,16 +49,33 @@ const lanternLight=new THREE.PointLight(0xf8c177,0,17,2);scene.add(lanternLight)
 const p=group(0,9),body=new THREE.Group();p.add(body);const coat=cylinder(.47,.64,1.46,M.shirt,0,1.42,0,body);ball(.39,M.skin,0,2.46,0,body);
 const hat=cylinder(.49,.45,.39,M.black,0,2.84,0,body);cylinder(.73,.73,.09,M.black,0,2.64,0,body);
 const armL=cube(.27,1.14,.36,M.shirt,-.64,1.48,0,body),armR=cube(.27,1.14,.36,M.shirt,.64,1.48,0,body),legL=cube(.34,.83,.39,M.trousers,-.25,.4,0,body),legR=cube(.34,.83,.39,M.trousers,.25,.4,0,body);
+const cinematic=installCinematic({THREE,scene,renderer,M,cube,cylinder,ball,group,p,mobile,collisions});
 const collectibles=[];function loot(type,x,z,label){let g=group(x,z);g.userData.type=type;if(type==='wood'){cylinder(.33,.39,1.4,M.bark,0,.68,0,g);ball(.58,M.grass2,0,1.48,0,g)}else if(type==='stone'){let s=ball(.67,M.stone,0,.46,0,g);s.scale.set(1.2,.8,1)}else if(type==='scrap'){cube(1,.34,.7,M.rust,0,.36,0,g);cube(.65,.65,.3,M.metal,0,.6,0,g)}else if(type==='food'){cube(.76,.43,.67,M.wood,0,.3,0,g);for(let i=0;i<4;i++)ball(.18,M.berries,(i-1.5)*.16,.63,R(-.15,.15),g)}else{cube(.8,.65,.7,type==='fuel'?M.rust:M.woodLight,0,.5,0,g);cube(.35,.12,.35,M.metal,0,.88,0,g)}collectibles.push({type,label,group:g,active:true});return g}
 for(const [type,coords] of Object.entries({wood:[[-15,8],[11,5],[24,9],[-45,-12],[41,13],[-17,39],[-15,63],[39,-13],[-6,-40],[50,-46]],stone:[[9,18],[-13,14],[18,-15],[-19,29],[42,27],[-48,-24],[7,-51],[-9,46]],scrap:[[12,-31],[29,-21],[39,-34],[8,-49],[-21,-5],[-28,25],[19,27],[-12,-59]],food:[[-19,-6],[9,28],[-34,18],[30,39],[-11,40],[-40,-3],[26,-2]]}))for(const [x,z] of coords)loot(type,x,z);
 loot('fuel',25,-27,'燃料缶');loot('key',-39,25,'車の鍵');
 const POI=[{x:0,z:-63,title:'STRANDED PICKUP',label:'壊れたトラック',action:'truck'},{x:25,z:-35,title:'OLD BARN',label:'古い納屋',action:'barn'},{x:-39,z:34,title:'ST. MARY CHAPEL',label:'廃教会',action:'chapel'},{x:-28,z:-11,title:'FARMHOUSE',label:'農場主の家',action:'house'}];
 const modelLoader=new GLTFLoader(),assetRoot='https://cdn.jsdelivr.net/gh/Hidencod/tge-assets@main/packs/';
-let modelInstances=0;function freeModel(pack,name,x,z,scale=1,ry=0){modelLoader.load(assetRoot+pack+'/'+name+'.glb',gltf=>{const root=gltf.scene;root.position.set(x,0,z);root.rotation.y=ry;root.scale.setScalar(scale);root.traverse(n=>{if(n.isMesh){n.castShadow=!mobile;n.receiveShadow=true}});scene.add(root);modelInstances++},()=>{},()=>{})}
+const assetCache=new Map();let modelInstances=0;
+function freeModel(pack,name,x,z,scale=1,ry=0){
+  const url=assetRoot+pack+'/'+name+'.glb';
+  if(!assetCache.has(url))assetCache.set(url,new Promise(resolve=>modelLoader.load(url,g=>resolve(g.scene),undefined,()=>resolve(null))));
+  assetCache.get(url).then(template=>{
+    if(!template)return;
+    const root=template.clone(true);root.position.set(x,0,z);root.rotation.y=ry;root.scale.setScalar(scale);
+    root.traverse(n=>{if(n.isMesh){n.castShadow=!mobile;n.receiveShadow=true}});
+    scene.add(root);modelInstances++;
+  });
+}
 for(let i=0;i<8;i++)freeModel('graveyard-kit',i%3===0?'gravestone-round':'gravestone-cross',-48+(i%4)*3.5,50+Math.floor(i/4)*3.5,1.6,R(-.2,.2));
 for(let i=0;i<7;i++)freeModel('graveyard-kit','hay-bale',18+(i%3)*2.6,-20+Math.floor(i/3)*2.2,1.35,R(-.3,.3));
 for(let i=0;i<4;i++)freeModel('graveyard-kit','pine-fall-crooked',-62+i*12,65+i*4,2.3,R(0,6));
 for(let i=0;i<5;i++)freeModel('nature-kit','rocks',44+i*4,-13+i*7,1.5,R(0,6));
+for(let i=0;i<(mobile?10:24);i++)freeModel('nature-kit',i%2===0?'tree-oak-fall':'tree-detailed-fall',-96+i*8.1,-63+(i%5)*31,1.2+(i%3)*.3,i*.72);
+for(let i=0;i<(mobile?7:16);i++)freeModel('nature-kit','rock-large'+String.fromCharCode(97+(i%6)),-73+i*9,20+(i%4)*15,1.15,i);
+for(let i=0;i<(mobile?7:18);i++)freeModel('nature-kit','plant-bushdetailed',-65+i*6,-24+(i%3)*12,1.45,i*.33);
+for(let i=0;i<6;i++)freeModel('nature-kit','log-stack',18+(i%3)*3,-12+Math.floor(i/3)*4,1.5,i*.8);
+for(let i=0;i<8;i++)freeModel('nature-kit','crops-cornstaged',12+i*3.3,64,1.55,0);
+
 const saveKey='gothic-island-1931-v2';const inv={wood:0,stone:0,scrap:0,food:0};const state={health:100,hunger:100,stamina:100,time:18.7,day:1,hatchet:false,lantern:false,repairKit:false,fuel:false,key:false,escaped:false,started:false};
 try{const data=JSON.parse(localStorage.getItem(saveKey)||'null');if(data?.state&&!data.state.escaped){Object.assign(state,data.state);Object.assign(inv,data.inv);if(Number.isFinite(data.x)&&Number.isFinite(data.z))p.position.set(data.x,0,data.z);(data.collected||[]).forEach(i=>{const o=collectibles[i];if(o){o.active=false;scene.remove(o.group)}})}}catch(e){}
 const itemLabels={wood:'WOOD',stone:'STONE',scrap:'SCRAP',food:'BERRIES'},icons={wood:'🪵',stone:'◈',scrap:'⚙',food:'●'};
@@ -112,6 +130,7 @@ $('markerLabel').textContent=target.title;$('markerDist').textContent=Math.round
 const n=nearest();$('prompt').classList.toggle('show',!!n);if(n){$('promptLabel').textContent=n.group?(n.type==='fuel'?'燃料缶を拾う':n.type==='key'?'車の鍵を拾う':'素材を集める'):n.label+'を調べる';$('promptSub').textContent=n.group?'調べてバックパックに入れる':'周囲を探索する'}
 ui+=dt;saveTimer+=dt;if(ui>.3){updateUI();ui=0}if(saveTimer>15){save();saveTimer=0}
 }else if(!state.started){camera.position.lerp(new THREE.Vector3(27,21,46),1-Math.exp(-dt*.8));camera.lookAt(0,2,-25);sunlight.position.x=-38+Math.sin(now*.00018)*7}
+cinematic.tick(now,dt,p.position,state.time);
 renderer.render(scene,camera)}
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,mobile?1.25:1.8))});
 updateUI();requestAnimationFrame(frame);setTimeout(()=>$('loading').classList.add('done'),600);setTimeout(()=>$('loading').remove(),1400);
