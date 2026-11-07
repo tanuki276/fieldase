@@ -240,3 +240,8 @@ summary { cursor: pointer; font: 11px var(--narrow); letter-spacing: 2px; color:
 #compatibilityNote { color: #c8ba8f; border-left: 1px solid #b79d64; padding-left: 12px; font-size: 10px; line-height: 1.8; max-width: 280px; }
 
 .titleScreen > :not(canvas):not(.vignette):not(.grain) { visibility: hidden; }
+
+.cross, .ruleCross { position: relative; display: inline-block; flex: none; width: 20px; height: 30px; }
+.ruleCross { width: 10px; height: 16px; }
+.cross::before, .ruleCross::before { content: ''; position: absolute; top: 0; left: 50%; width: 1px; height: 100%; background: var(--brass); }
+.cross::after, .ruleCross::after { content: ''; position: absolute; top: 30%; left: 0; width: 100%; height: 1px; background: var(--brass); }
