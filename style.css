@@ -234,3 +234,5 @@ summary { cursor: pointer; font: 11px var(--narrow); letter-spacing: 2px; color:
 }
 .reducedMotion .grain { display: none; }
 .reducedMotion #dangerWash { visibility: hidden; }
+
+#mobileRun[data-exhausted="true"] { color: #be8b77; border-color: #be8b7755; }

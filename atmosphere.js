@@ -88,8 +88,8 @@ export function createAtmosphere({THREE, scene, cube, cylinder, ball, group, mob
         if(!flare) {view.glow.intensity=0;continue;}
         view.root.position.set(flare.x,0,flare.z);
         const strength=Math.min(1,flare.life/2);
-        view.glow.intensity=(mobile&&index>0?0:55)*strength*(.9+Math.sin(world.elapsed*21)*.1);
-        view.core.scale.setScalar((1+Math.sin(world.elapsed*15)*.15)*strength);
+        view.glow.intensity=(mobile&&index>0?0:55)*strength*(reducedMotion?1:.9+Math.sin(world.elapsed*21)*.1);
+        view.core.scale.setScalar((reducedMotion?1:1+Math.sin(world.elapsed*15)*.15)*strength);
         for(let spark=0;spark<24;spark++) {
           const phase=(world.elapsed*.8+spark/24)%1;
           view.positions[spark*3]=Math.sin(spark*7+phase*2)*phase*.8;

@@ -163,9 +163,10 @@ let dashRemaining=0;
 let cameraZoom=1;
 let sprintExhausted=false;
 let hitFlash=0;
+let graphicsLost=false;
 let activePanel = null;
 let returnFocus = null;
-const canPlay = () => state.started && !state.escaped && !activePanel && !document.hidden;
+const canPlay = () => state.started && !state.escaped && !activePanel && !document.hidden && !graphicsLost;
 const clamp = THREE.MathUtils.clamp;
 
 function readSave() {
@@ -179,7 +180,9 @@ function readSave() {
     for (const [name, fallback] of Object.entries(state)) {
       if (['started','flares','medicine'].includes(name)) continue;
       const value = data.state[name];
-      if (typeof fallback === 'boolean' && typeof value === 'boolean') state[name] = value;
+      if (typeof fallback === 'boolean') {
+        if(typeof value==='boolean')state[name]=value;
+      }
       else if (Number.isFinite(value)) {
         state[name] = name === 'day' ? Math.max(1, Math.floor(value))
           : clamp(value, 0, name === 'time' ? 23.999 : 100);
@@ -454,6 +457,8 @@ addEventListener('keydown', event => {
     }
     return;
   }
+  if (canPlay() && ['KeyE','KeyF','KeyI','KeyC','KeyM','KeyJ','KeyQ','KeyR','KeyL','Space'].includes(event.code))event.preventDefault();
+  if (event.ctrlKey && activePanel && event.code!=='Escape')return;
   if (event.repeat) return;
   if (['SELECT','INPUT'].includes(event.target?.tagName) && event.code!=='Escape') return;
   if (event.code === 'Escape') toggle(activePanel || 'pausePanel');
@@ -466,10 +471,10 @@ addEventListener('keydown', event => {
   if (event.code === 'KeyQ') useFlare();
   if (event.code === 'KeyR') useMedicine();
   if (event.code === 'KeyL') toggleLantern();
-  if (event.code === 'Space') {event.preventDefault();tryDodge();}
+  if (event.code === 'Space' && canPlay()) {event.preventDefault();tryDodge();}
 });
 addEventListener('keyup', event => delete key[event.code]);
-addEventListener('blur', clearInput);
+addEventListener('blur',()=>{clearInput();if(canPlay())toggle('pausePanel');});
 const axis = {x: 0, y: 0};
 let stickPointer = null;
 let runPointer = null;
@@ -613,7 +618,7 @@ function updateSurvivalUI(crouching) {
 function frame(now) {
   requestAnimationFrame(frame);
   const dt=Math.min(.05,Math.max(0,(now-last)/1000));last=now;
-  if(activePanel||document.hidden||state.escaped)return;
+  if(activePanel||document.hidden||state.escaped||graphicsLost)return;
   if(canPlay()) {
     let x=Number(!!(key.KeyD||key.ArrowRight))-Number(!!(key.KeyA||key.ArrowLeft))+axis.x;
     let z=Number(!!(key.KeyS||key.ArrowDown))-Number(!!(key.KeyW||key.ArrowUp))+axis.y;
@@ -689,10 +694,12 @@ renderer.domElement.addEventListener('wheel',event=>{
 },{passive:false});
 renderer.domElement.addEventListener('webglcontextlost',event=>{
   event.preventDefault();save();
-  if(canPlay())toggle('pausePanel');
+  const playing=canPlay();graphicsLost=true;
+  if(playing)toggle('pausePanel');
   $('graphicsWarning').hidden=false;
 });
 renderer.domElement.addEventListener('webglcontextrestored',()=>{
+  graphicsLost=false;
   $('graphicsWarning').hidden=true;
   toast('描画を復旧した。メニューを閉じると再開できる。');
 });

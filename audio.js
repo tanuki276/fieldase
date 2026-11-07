@@ -64,7 +64,7 @@ export class SurvivalAudio {
     if(event==='thunder') {this.noise(2.8,.35,160);this.tone(38,2,.13,'sine',25);return;}
     if(event==='spotted') this.tone(135,.8,.12,'sawtooth',58);
   }
-  tick(dt,{moving,sprinting,crouching,threat,storm,paused,health}) {
+  tick(dt,{moving=false,sprinting=false,crouching=false,threat=0,storm=0,paused=false,health=100}={}) {
     if(!this.enabled||!this.context)return;
     this.master.gain.setTargetAtTime(paused?0:this.volume,this.context.currentTime,.12);
     if(paused)return;
